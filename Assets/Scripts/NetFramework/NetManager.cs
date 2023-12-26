@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Net.Sockets;
 using UnityEngine;
 
@@ -13,6 +14,8 @@ public static class NetManager
     /// 字节数组
     /// </summary>
     private static ByteArray _byteArray;
+
+    private static List<MsgBase> _msgList;
     
     /// <summary>
     /// 初始化
@@ -21,6 +24,7 @@ public static class NetManager
     {
         _socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
         _byteArray = new ByteArray();
+        _msgList = new List<MsgBase>();
     }
 
     /// <summary>
@@ -94,13 +98,48 @@ public static class NetManager
         }
     }
 
-    private static void OnReceiveData()
-    {
-        throw new NotImplementedException();
-    }
-
     private static void Close()
     {
-        throw new NotImplementedException();
+        
+    }
+
+    /// <summary>
+    /// 处理接收过来的消息
+    /// </summary>
+    private static void OnReceiveData()
+    {
+        if (_byteArray.Length <= 2) return;
+        byte[] bytes = _byteArray.bytes;
+        int readIndex = _byteArray.readIndex;
+        //解析消息总体长度
+        short length = (short)(bytes[readIndex + 1] * 256 + bytes[readIndex]);
+
+        if (_byteArray.Length < length + 2) return;
+        _byteArray.readIndex += 2;
+        int nameCount = 0;
+        string protoName = MsgBase.DecodeName(_byteArray.bytes, _byteArray.readIndex, out nameCount);
+        if (protoName == "")
+        {
+            Debug.LogError($"协议名解析失败");
+            return;
+        }
+        _byteArray.readIndex += nameCount;
+
+        //解析协议体
+        int bodyLength = length - nameCount;
+        MsgBase msgBase = MsgBase.Decode(protoName, _byteArray.bytes, _byteArray.readIndex, bodyLength);
+        _byteArray.readIndex += bodyLength;
+        
+        //移动数据
+        _byteArray.MoveBytes();
+        lock (_msgList)
+        {
+            _msgList.Add(msgBase);
+        }
+
+        if (_byteArray.Length > 2)
+        {
+            OnReceiveData();
+        }
     }
 }
