@@ -11,10 +11,13 @@ public static class NetManager
     private static Socket _socket;
 
     /// <summary>
-    /// 字节数组
+    /// 存放消息的字节数组
     /// </summary>
     private static ByteArray _byteArray;
 
+    /// <summary>
+    /// 消息列表
+    /// </summary>
     private static List<MsgBase> _msgList;
     
     /// <summary>
@@ -116,8 +119,7 @@ public static class NetManager
 
         if (_byteArray.Length < length + 2) return;
         _byteArray.readIndex += 2;
-        int nameCount = 0;
-        string protoName = MsgBase.DecodeName(_byteArray.bytes, _byteArray.readIndex, out nameCount);
+        string protoName = MsgBase.DecodeName(_byteArray.bytes, _byteArray.readIndex, out var nameCount);
         if (protoName == "")
         {
             Debug.LogError($"协议名解析失败");
