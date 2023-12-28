@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Sockets;
 using UnityEngine;
 
@@ -19,6 +20,11 @@ public static class NetManager
     /// 消息列表
     /// </summary>
     private static List<MsgBase> _msgList;
+
+    /// <summary>
+    /// 发送队列
+    /// </summary>
+    private static Queue<ByteArray> _writeQueue;
     
     /// <summary>
     /// 初始化
@@ -142,6 +148,75 @@ public static class NetManager
         if (_byteArray.Length > 2)
         {
             OnReceiveData();
+        }
+    }
+
+    /// <summary>
+    /// 发送协议
+    /// </summary>
+    /// <param name="msg"></param>
+    public static void Send(MsgBase msg)
+    {
+        if (_socket == null || !_socket.Connected) 
+            return;
+        
+        //编码
+        byte[] nameBytes = MsgBase.EncodeName(msg);
+        byte[] bodyBytes = MsgBase.Encode(msg);
+        int len = nameBytes.Length + bodyBytes.Length;
+        byte[] sendBytes = new byte[len + 2];
+        sendBytes[0] = (byte)(len % 256);
+        sendBytes[1] = (byte)(len / 256);
+        Array.Copy(nameBytes, 0, sendBytes, 2, nameBytes.Length);
+        Array.Copy(bodyBytes, 0, sendBytes, 2 + nameBytes.Length, bodyBytes.Length);
+
+        ByteArray ba = new ByteArray(sendBytes);
+        int count = 0;
+        lock (_writeQueue)
+        {
+            _writeQueue.Enqueue(ba);
+            count = _writeQueue.Count;
+        }
+
+        if (count == 1)
+        {
+            _socket.BeginSend(sendBytes, 0, sendBytes.Length, SocketFlags.None, SendCallback, _socket);
+        }
+    }
+
+    /// <summary>
+    /// 发送回调
+    /// </summary>
+    /// <param name="ar"></param>
+    private static void SendCallback(IAsyncResult ar)
+    {
+        Socket socket = (Socket)ar.AsyncState;
+        if (socket == null || !socket.Connected)
+            return;
+        
+        int count = socket.EndSend(ar);
+        ByteArray ba;
+        lock (_writeQueue)
+        {
+            ba = _writeQueue.First();
+        }
+
+        ba.readIndex += count;
+        //如果这个byteArray已经发送完成
+        if (ba.Length == 0)
+        {
+            lock (_writeQueue)
+            {
+                //清除
+                _writeQueue.Dequeue();
+                //取到下一个
+                ba = _writeQueue.First();
+            }
+        }
+
+        if (ba != null)
+        {
+            _socket.BeginSend(ba.bytes, ba.readIndex, ba.Length, SocketFlags.None, SendCallback, _socket);
         }
     }
 }

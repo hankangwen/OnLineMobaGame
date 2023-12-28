@@ -35,7 +35,7 @@ public class MsgBase
     }
 
     /// <summary>
-    /// 协议名编码
+    /// 协议名编码，前2个字节是协议名长度和后面是协议名内容
     /// </summary>
     /// <param name="msgBase">消息</param>
     /// <returns></returns>
