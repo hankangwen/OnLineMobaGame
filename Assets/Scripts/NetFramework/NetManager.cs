@@ -34,6 +34,7 @@ public static class NetManager
         _socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
         _byteArray = new ByteArray();
         _msgList = new List<MsgBase>();
+        _writeQueue = new Queue<ByteArray>();
     }
 
     /// <summary>
