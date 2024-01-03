@@ -22,6 +22,16 @@ public static class NetManager
     private static List<MsgBase> _msgList;
 
     /// <summary>
+    /// 是否正在连接
+    /// </summary>
+    private static bool _isConnecting;
+
+    /// <summary>
+    /// 是否正在关闭
+    /// </summary>
+    private static bool _isClosing;
+
+    /// <summary>
     /// 发送队列
     /// </summary>
     private static Queue<ByteArray> _writeQueue;
@@ -35,6 +45,8 @@ public static class NetManager
         _byteArray = new ByteArray();
         _msgList = new List<MsgBase>();
         _writeQueue = new Queue<ByteArray>();
+        _isConnecting = false;
+        _isClosing = false;
     }
 
     /// <summary>
@@ -44,7 +56,18 @@ public static class NetManager
     /// <param name="port">端口号</param>
     public static void Connect(string ip, int port)
     {
+        if (_socket != null && _socket.Connected)
+        {
+            Debug.LogError("连接失败，已经连接过了");
+            return;
+        }
+        if (_isConnecting)
+        {
+            Debug.LogError("连接失败，正在连接中");
+            return;
+        }
         Init();
+        _isConnecting = true;
         _socket.BeginConnect(ip, port, ConnectCallback, _socket);
     }
 
@@ -59,6 +82,8 @@ public static class NetManager
             Socket socket = (Socket)ar.AsyncState;
             socket.EndConnect(ar);
             Debug.Log("Connect Success!");
+
+            _isConnecting = false;
             
             //接收消息
             socket.BeginReceive(_byteArray.bytes, _byteArray.writeIndex, _byteArray.Remain, SocketFlags.None,
@@ -67,6 +92,7 @@ public static class NetManager
         catch (SocketException e)
         {
             Debug.LogError("连接失败" + e.Message);
+            _isConnecting = false;
         }
     }
 
@@ -108,9 +134,25 @@ public static class NetManager
         }
     }
 
+    /// <summary>
+    /// 关闭客户端
+    /// </summary>
     private static void Close()
     {
+        if (_socket == null || !_socket.Connected)
+            return;
+        if (_isConnecting)
+            return;
         
+        //消息还没有发送完
+        if (_writeQueue.Count > 0)
+        {
+            _isClosing = true;
+        }
+        else
+        {
+            _socket.Close();
+        }
     }
 
     /// <summary>
@@ -159,6 +201,10 @@ public static class NetManager
     public static void Send(MsgBase msg)
     {
         if (_socket == null || !_socket.Connected) 
+            return;
+        if(_isConnecting)
+            return;
+        if (_isClosing)
             return;
         
         //编码
@@ -215,9 +261,15 @@ public static class NetManager
             }
         }
 
+        //没有发送完成，还有消息要继续发送
         if (ba != null)
         {
             _socket.BeginSend(ba.bytes, ba.readIndex, ba.Length, SocketFlags.None, SendCallback, _socket);
+        }
+
+        if (_isClosing)
+        {
+            _socket.Close();
         }
     }
 }
