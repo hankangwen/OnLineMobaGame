@@ -35,6 +35,132 @@ public static class NetManager
     /// 发送队列
     /// </summary>
     private static Queue<ByteArray> _writeQueue;
+
+    private static readonly int MaxProcessMsgCount = 10;
+    
+    /// <summary>
+    /// 网络事件
+    /// </summary>
+    public enum NetEvent
+    {
+        ConnectSuccess = 1,
+        ConnectFail = 2,
+        Close,
+    }
+
+    /// <summary>
+    /// 执行的事件
+    /// </summary>
+    public delegate void EventListener(string err);
+
+    /// <summary>
+    /// 事件的字典
+    /// </summary>
+    private static Dictionary<NetEvent, EventListener> _eventListeners = new Dictionary<NetEvent, EventListener>();
+
+    /// <summary>
+    /// 添加事件
+    /// </summary>
+    /// <param name="netEvent"></param>
+    /// <param name="listener"></param>
+    public static void AddEventListener(NetEvent netEvent, EventListener listener)
+    {
+        if (_eventListeners.ContainsKey(netEvent))
+        {
+            _eventListeners[netEvent] += listener;
+        }
+        else
+        {
+            _eventListeners.Add(netEvent, listener);
+        }
+    }
+
+    /// <summary>
+    /// 移除事件
+    /// </summary>
+    /// <param name="netEvent"></param>
+    /// <param name="listener"></param>
+    public static void RemoveListener(NetEvent netEvent, EventListener listener)
+    {
+        if (_eventListeners.ContainsKey(netEvent))
+        {
+            _eventListeners[netEvent] -= listener;
+            if (_eventListeners[netEvent] == null)
+            {
+                _eventListeners.Remove(netEvent);
+            }
+        }
+    }
+
+    /// <summary>
+    /// 分发事件
+    /// </summary>
+    /// <param name="netEvent"></param>
+    /// <param name="err"></param>
+    public static void DispatchEvent(NetEvent netEvent, string err)
+    {
+        if (_eventListeners.ContainsKey(netEvent))
+        {
+            _eventListeners[netEvent](err);
+        }
+    }
+
+    /// <summary>
+    /// 消息处理委托
+    /// </summary>
+    public delegate void MsgListener(MsgBase msgBase);
+
+    /// <summary>
+    /// 消息事件字典
+    /// </summary>
+    private static Dictionary<string, MsgListener> _msgListeners = new Dictionary<string, MsgListener>();
+
+    /// <summary>
+    /// 添加事件
+    /// </summary>
+    /// <param name="msgName">事件名字</param>
+    /// <param name="listener"></param>
+    public static void AddMsgListener(string msgName, MsgListener listener)
+    {
+        if (_msgListeners.ContainsKey(msgName))
+        {
+            _msgListeners[msgName] += listener;
+        }
+        else
+        {
+            _msgListeners.Add(msgName, listener);
+        }
+    }
+
+    /// <summary>
+    /// 移除事件
+    /// </summary>
+    /// <param name="msgName"></param>
+    /// <param name="listener"></param>
+    public static void RemoveMsgListener(string msgName, MsgListener listener)
+    {
+        if (_msgListeners.ContainsKey(msgName))
+        {
+            _msgListeners[msgName] -= listener;
+            if (_msgListeners[msgName] == null)
+            {
+                _msgListeners.Remove(msgName);
+            }
+        }
+    }
+
+    /// <summary>
+    /// 分发事件
+    /// </summary>
+    /// <param name="msgName">消息名字</param>
+    /// <param name="msgBase">消息体</param>
+    public static void DispatchMsg(string msgName, MsgBase msgBase)
+    {
+        if (_msgListeners.ContainsKey(msgName))
+        {
+            _msgListeners[msgName](msgBase);
+        }
+    }
     
     /// <summary>
     /// 初始化
@@ -82,6 +208,8 @@ public static class NetManager
             Socket socket = (Socket)ar.AsyncState;
             socket.EndConnect(ar);
             Debug.Log("Connect Success!");
+            
+            DispatchEvent(NetEvent.ConnectSuccess, "");
 
             _isConnecting = false;
             
@@ -92,6 +220,7 @@ public static class NetManager
         catch (SocketException e)
         {
             Debug.LogError("连接失败" + e.Message);
+            DispatchEvent(NetEvent.ConnectFail, e.Message);
             _isConnecting = false;
         }
     }
@@ -152,6 +281,7 @@ public static class NetManager
         else
         {
             _socket.Close();
+            DispatchEvent(NetEvent.Close, "");
         }
     }
 
@@ -270,6 +400,32 @@ public static class NetManager
         if (_isClosing)
         {
             _socket.Close();
+        }
+    }
+
+    public static void MsgUpdate()
+    {
+        //没有消息
+        if(_msgList.Count==0)
+            return;
+
+        for (int i = 0; i < MaxProcessMsgCount; i++)
+        {
+            MsgBase msgBase = null;
+            lock (_msgList)
+            {
+                msgBase = _msgList[0];
+                _msgList.RemoveAt(0);
+            }
+
+            if (msgBase != null)
+            {
+                DispatchMsg(msgBase.protoName, msgBase);
+            }
+            else
+            {
+                break;
+            }
         }
     }
 }
