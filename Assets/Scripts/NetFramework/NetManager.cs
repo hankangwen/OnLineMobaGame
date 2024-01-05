@@ -445,8 +445,11 @@ public static class NetManager
             MsgBase msgBase = null;
             lock (_msgList)
             {
-                msgBase = _msgList[0];
-                _msgList.RemoveAt(0);
+                if (_msgList.Count > 0)
+                {
+                    msgBase = _msgList[0];
+                    _msgList.RemoveAt(0);
+                }
             }
 
             if (msgBase != null)
@@ -474,7 +477,7 @@ public static class NetManager
         }
         
         //断开的处理
-        if (Time.time - _lastPingTime > _pingInterval * 4)
+        if (Time.time - _lastPoingTime > _pingInterval * 4)
         {
             Close();
         }
