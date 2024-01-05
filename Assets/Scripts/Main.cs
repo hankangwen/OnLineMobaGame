@@ -11,6 +11,11 @@ public class Main : MonoBehaviour
         NetManager.Connect("127.0.0.1", 8888);
     }
 
+    private void Update()
+    {
+        NetManager.Update();
+    }
+
     private void OnEventClose(string err)
     {
         Debug.Log("连接关闭");

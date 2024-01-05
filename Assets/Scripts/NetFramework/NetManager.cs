@@ -36,7 +36,30 @@ public static class NetManager
     /// </summary>
     private static Queue<ByteArray> _writeQueue;
 
+    /// <summary>
+    /// 一帧处理的最大消息量
+    /// </summary>
     private static readonly int MaxProcessMsgCount = 10;
+
+    /// <summary>
+    /// 是否启用心跳机制
+    /// </summary>
+    private static bool _isUsePing = true;
+
+    /// <summary>
+    /// 上一次发送Ping的时间
+    /// </summary>
+    private static float _lastPingTime = 0;
+
+    /// <summary>
+    /// 上一次收到Point的时间
+    /// </summary>
+    private static float _lastPoingTime = 0;
+    
+    /// <summary>
+    /// 心跳机制的时间间隔
+    /// </summary>
+    private static float _pingInterval = 30;
     
     /// <summary>
     /// 网络事件
@@ -173,6 +196,14 @@ public static class NetManager
         _writeQueue = new Queue<ByteArray>();
         _isConnecting = false;
         _isClosing = false;
+
+        _lastPingTime = Time.time;
+        _lastPoingTime = Time.time;
+
+        if (!_msgListeners.ContainsKey("MsgPong"))
+        {
+            AddMsgListener("MsgPong", OnMsgPong);
+        }
     }
 
     /// <summary>
@@ -403,7 +434,7 @@ public static class NetManager
         }
     }
 
-    public static void MsgUpdate()
+    private static void MsgUpdate()
     {
         //没有消息
         if(_msgList.Count==0)
@@ -427,5 +458,40 @@ public static class NetManager
                 break;
             }
         }
+    }
+
+    private static void PingUpdate()
+    {
+        if(!_isUsePing)
+            return;
+
+        if (Time.time - _lastPingTime > _pingInterval)
+        {
+            //发送
+            MsgPing msgPing = new MsgPing();
+            Send(msgPing);
+            _lastPingTime = Time.time;
+        }
+        
+        //断开的处理
+        if (Time.time - _lastPingTime > _pingInterval * 4)
+        {
+            Close();
+        }
+    }
+
+    public static void Update()
+    {
+        PingUpdate();
+        MsgUpdate();
+    }
+
+    /// <summary>
+    /// 处理Pong
+    /// </summary>
+    /// <param name="msgBase"></param>
+    private static void OnMsgPong(MsgBase msgBase)
+    {
+        _lastPoingTime = Time.time;
     }
 }
