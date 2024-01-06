@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 
 public class Main : MonoBehaviour
@@ -8,6 +7,7 @@ public class Main : MonoBehaviour
         NetManager.AddEventListener(NetManager.NetEvent.ConnectSuccess, OnEventSuccess);
         NetManager.AddEventListener(NetManager.NetEvent.ConnectFail, OnEventFail);
         NetManager.AddEventListener(NetManager.NetEvent.Close, OnEventClose);
+        
         NetManager.Connect("127.0.0.1", 8888);
     }
 

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Net.Sockets;
 using UnityEngine;
 
-public static class NetManager
+public static partial class NetManager
 {
     /// <summary>
     /// 客户端套接字
@@ -62,130 +62,6 @@ public static class NetManager
     private static float _pingInterval = 30;
     
     /// <summary>
-    /// 网络事件
-    /// </summary>
-    public enum NetEvent
-    {
-        ConnectSuccess = 1,
-        ConnectFail = 2,
-        Close,
-    }
-
-    /// <summary>
-    /// 执行的事件
-    /// </summary>
-    public delegate void EventListener(string err);
-
-    /// <summary>
-    /// 事件的字典
-    /// </summary>
-    private static Dictionary<NetEvent, EventListener> _eventListeners = new Dictionary<NetEvent, EventListener>();
-
-    /// <summary>
-    /// 添加事件
-    /// </summary>
-    /// <param name="netEvent"></param>
-    /// <param name="listener"></param>
-    public static void AddEventListener(NetEvent netEvent, EventListener listener)
-    {
-        if (_eventListeners.ContainsKey(netEvent))
-        {
-            _eventListeners[netEvent] += listener;
-        }
-        else
-        {
-            _eventListeners.Add(netEvent, listener);
-        }
-    }
-
-    /// <summary>
-    /// 移除事件
-    /// </summary>
-    /// <param name="netEvent"></param>
-    /// <param name="listener"></param>
-    public static void RemoveListener(NetEvent netEvent, EventListener listener)
-    {
-        if (_eventListeners.ContainsKey(netEvent))
-        {
-            _eventListeners[netEvent] -= listener;
-            if (_eventListeners[netEvent] == null)
-            {
-                _eventListeners.Remove(netEvent);
-            }
-        }
-    }
-
-    /// <summary>
-    /// 分发事件
-    /// </summary>
-    /// <param name="netEvent"></param>
-    /// <param name="err"></param>
-    public static void DispatchEvent(NetEvent netEvent, string err)
-    {
-        if (_eventListeners.ContainsKey(netEvent))
-        {
-            _eventListeners[netEvent](err);
-        }
-    }
-
-    /// <summary>
-    /// 消息处理委托
-    /// </summary>
-    public delegate void MsgListener(MsgBase msgBase);
-
-    /// <summary>
-    /// 消息事件字典
-    /// </summary>
-    private static Dictionary<string, MsgListener> _msgListeners = new Dictionary<string, MsgListener>();
-
-    /// <summary>
-    /// 添加事件
-    /// </summary>
-    /// <param name="msgName">事件名字</param>
-    /// <param name="listener"></param>
-    public static void AddMsgListener(string msgName, MsgListener listener)
-    {
-        if (_msgListeners.ContainsKey(msgName))
-        {
-            _msgListeners[msgName] += listener;
-        }
-        else
-        {
-            _msgListeners.Add(msgName, listener);
-        }
-    }
-
-    /// <summary>
-    /// 移除事件
-    /// </summary>
-    /// <param name="msgName"></param>
-    /// <param name="listener"></param>
-    public static void RemoveMsgListener(string msgName, MsgListener listener)
-    {
-        if (_msgListeners.ContainsKey(msgName))
-        {
-            _msgListeners[msgName] -= listener;
-            if (_msgListeners[msgName] == null)
-            {
-                _msgListeners.Remove(msgName);
-            }
-        }
-    }
-
-    /// <summary>
-    /// 分发事件
-    /// </summary>
-    /// <param name="msgName">消息名字</param>
-    /// <param name="msgBase">消息体</param>
-    public static void DispatchMsg(string msgName, MsgBase msgBase)
-    {
-        if (_msgListeners.ContainsKey(msgName))
-        {
-            _msgListeners[msgName](msgBase);
-        }
-    }
-    
-    /// <summary>
     /// 初始化
     /// </summary>
     private static void Init()
@@ -225,7 +101,7 @@ public static class NetManager
         }
         Init();
         _isConnecting = true;
-        _socket.BeginConnect(ip, port, ConnectCallback, _socket);
+        _socket?.BeginConnect(ip, port, ConnectCallback, _socket);
     }
 
     /// <summary>
@@ -291,28 +167,6 @@ public static class NetManager
         catch (SocketException e)
         {
             Console.WriteLine("接收失败" + e.Message);
-        }
-    }
-
-    /// <summary>
-    /// 关闭客户端
-    /// </summary>
-    private static void Close()
-    {
-        if (_socket == null || !_socket.Connected)
-            return;
-        if (_isConnecting)
-            return;
-        
-        //消息还没有发送完
-        if (_writeQueue.Count > 0)
-        {
-            _isClosing = true;
-        }
-        else
-        {
-            _socket.Close();
-            DispatchEvent(NetEvent.Close, "");
         }
     }
 
@@ -431,6 +285,28 @@ public static class NetManager
         if (_isClosing)
         {
             _socket.Close();
+        }
+    }
+
+    /// <summary>
+    /// 关闭客户端
+    /// </summary>
+    private static void Close()
+    {
+        if (_socket == null || !_socket.Connected)
+            return;
+        if (_isConnecting)
+            return;
+        
+        //消息还没有发送完
+        if (_writeQueue.Count > 0)
+        {
+            _isClosing = true;
+        }
+        else
+        {
+            _socket.Close();
+            DispatchEvent(NetEvent.Close, "");
         }
     }
 
