@@ -54,12 +54,12 @@ public static partial class NetManager
     /// <summary>
     /// 上一次收到Point的时间
     /// </summary>
-    private static float _lastPoingTime = 0;
+    private static float _lastPongTime = 0;
     
     /// <summary>
     /// 心跳机制的时间间隔
     /// </summary>
-    private static float _pingInterval = 30;
+    private static float _pingInterval = 2;
     
     /// <summary>
     /// 初始化
@@ -74,7 +74,7 @@ public static partial class NetManager
         _isClosing = false;
 
         _lastPingTime = Time.time;
-        _lastPoingTime = Time.time;
+        _lastPongTime = Time.time;
 
         if (!_msgListeners.ContainsKey("MsgPong"))
         {
@@ -171,6 +171,28 @@ public static partial class NetManager
     }
 
     /// <summary>
+    /// 关闭客户端
+    /// </summary>
+    private static void Close()
+    {
+        if (_socket == null || !_socket.Connected)
+            return;
+        if (_isConnecting)
+            return;
+        
+        //消息还没有发送完
+        if (_writeQueue.Count > 0)
+        {
+            _isClosing = true;
+        }
+        else
+        {
+            _socket.Close();
+            DispatchEvent(NetEvent.Close, "");
+        }
+    }
+
+    /// <summary>
     /// 处理接收过来的消息
     /// </summary>
     private static void OnReceiveData()
@@ -183,7 +205,8 @@ public static partial class NetManager
 
         if (_byteArray.Length < length + 2) return;
         _byteArray.readIndex += 2;
-        string protoName = MsgBase.DecodeName(_byteArray.bytes, _byteArray.readIndex, out var nameCount);
+        int nameCount = 0;
+        string protoName = MsgBase.DecodeName(_byteArray.bytes, _byteArray.readIndex, out nameCount);
         if (protoName == "")
         {
             Debug.LogError($"协议名解析失败");
@@ -195,6 +218,7 @@ public static partial class NetManager
         int bodyLength = length - nameCount;
         MsgBase msgBase = MsgBase.Decode(protoName, _byteArray.bytes, _byteArray.readIndex, bodyLength);
         _byteArray.readIndex += bodyLength;
+        Debug.Log("msg:" + msgBase.protoName);
         
         //移动数据
         _byteArray.MoveBytes();
@@ -288,28 +312,6 @@ public static partial class NetManager
         }
     }
 
-    /// <summary>
-    /// 关闭客户端
-    /// </summary>
-    private static void Close()
-    {
-        if (_socket == null || !_socket.Connected)
-            return;
-        if (_isConnecting)
-            return;
-        
-        //消息还没有发送完
-        if (_writeQueue.Count > 0)
-        {
-            _isClosing = true;
-        }
-        else
-        {
-            _socket.Close();
-            DispatchEvent(NetEvent.Close, "");
-        }
-    }
-
     private static void MsgUpdate()
     {
         //没有消息
@@ -331,6 +333,7 @@ public static partial class NetManager
             if (msgBase != null)
             {
                 DispatchMsg(msgBase.protoName, msgBase);
+                Debug.Log(msgBase.protoName);
             }
             else
             {
@@ -353,7 +356,7 @@ public static partial class NetManager
         }
         
         //断开的处理
-        if (Time.time - _lastPoingTime > _pingInterval * 4)
+        if (Time.time - _lastPongTime > _pingInterval * 4)
         {
             Close();
         }
@@ -371,6 +374,6 @@ public static partial class NetManager
     /// <param name="msgBase"></param>
     private static void OnMsgPong(MsgBase msgBase)
     {
-        _lastPoingTime = Time.time;
+        _lastPongTime = Time.time;
     }
 }

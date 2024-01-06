@@ -9,6 +9,11 @@ public class MsgBase
     /// </summary>
     public string protoName = "";
 
+    public MsgBase()
+    {
+        protoName = this.GetType().Name;
+    }
+    
     /// <summary>
     /// 编码
     /// </summary>
@@ -66,8 +71,8 @@ public class MsgBase
     {
         count = 0;
         if (offset + 2 > bytes.Length) return "";
-        // short len = (short)(bytes[offset + 1] * 256 + bytes[offset]);
-        short len = (short)(bytes[offset + 1] << 8 | bytes[offset]);
+        short len = (short)(bytes[offset + 1] * 256 + bytes[offset]);
+        // short len = (short)(bytes[offset + 1] << 8 | bytes[offset]);
         if (len <= 0) return "";
         count = 2 + len;
         return Encoding.UTF8.GetString(bytes, offset + 2, len);
