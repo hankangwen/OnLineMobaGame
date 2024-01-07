@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
 using UnityEngine;
+using ProtoBuf;
+using PBMessage;
 
 public static partial class NetManager
 {
@@ -82,7 +84,7 @@ public static partial class NetManager
     /// <summary>
     /// 消息处理委托
     /// </summary>
-    public delegate void MsgListener(MsgBase msgBase);
+    public delegate void MsgListener(IExtensible msgBase);
 
     /// <summary>
     /// 消息事件字典
@@ -128,7 +130,7 @@ public static partial class NetManager
     /// </summary>
     /// <param name="msgName">消息名字</param>
     /// <param name="msgBase">消息体</param>
-    public static void DispatchMsg(string msgName, MsgBase msgBase)
+    public static void DispatchMsg(string msgName, IExtensible msgBase)
     {
         if (_msgListeners.ContainsKey(msgName))
         {
