@@ -9,6 +9,12 @@ using PBMessage;
 
 public static partial class NetManager
 {
+    public enum ServerType
+    {
+        Gateway,//网关服务器
+        Fighter,//战斗服务器
+    }
+    
     /// <summary>
     /// 客户端套接字
     /// </summary>
@@ -239,7 +245,7 @@ public static partial class NetManager
     /// 发送协议
     /// </summary>
     /// <param name="msg"></param>
-    public static void Send(IExtensible msg)
+    public static void Send(IExtensible msg, ServerType serverType)
     {
         if (_socket == null || !_socket.Connected) 
             return;
@@ -251,12 +257,13 @@ public static partial class NetManager
         //编码
         byte[] nameBytes = ProtobufTool.EncodeName(msg);
         byte[] bodyBytes = ProtobufTool.Encode(msg);
-        int len = nameBytes.Length + bodyBytes.Length;
+        int len = nameBytes.Length + bodyBytes.Length + 1;
         byte[] sendBytes = new byte[len + 2];
         sendBytes[0] = (byte)(len % 256);
         sendBytes[1] = (byte)(len / 256);
-        Array.Copy(nameBytes, 0, sendBytes, 2, nameBytes.Length);
-        Array.Copy(bodyBytes, 0, sendBytes, 2 + nameBytes.Length, bodyBytes.Length);
+        sendBytes[2] = (byte)serverType;
+        Array.Copy(nameBytes, 0, sendBytes, 3, nameBytes.Length);
+        Array.Copy(bodyBytes, 0, sendBytes, 3 + nameBytes.Length, bodyBytes.Length);
 
         ByteArray ba = new ByteArray(sendBytes);
         int count = 0;
@@ -354,7 +361,7 @@ public static partial class NetManager
         {
             //发送
             MsgPing msgPing = new MsgPing();
-            Send(msgPing);
+            Send(msgPing, ServerType.Gateway);
             _lastPingTime = Time.time;
         }
         
