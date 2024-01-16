@@ -50,25 +50,25 @@ public static partial class NetManager
     /// </summary>
     private static readonly int MaxProcessMsgCount = 10;
 
-    /// <summary>
-    /// 是否启用心跳机制
-    /// </summary>
-    private static bool _isUsePing = true;
-
-    /// <summary>
-    /// 上一次发送Ping的时间
-    /// </summary>
-    private static float _lastPingTime = 0;
-
-    /// <summary>
-    /// 上一次收到Point的时间
-    /// </summary>
-    private static float _lastPongTime = 0;
-    
-    /// <summary>
-    /// 心跳机制的时间间隔
-    /// </summary>
-    private static float _pingInterval = 2;
+    // /// <summary>
+    // /// 是否启用心跳机制
+    // /// </summary>
+    // private static bool _isUsePing = true;
+    //
+    // /// <summary>
+    // /// 上一次发送Ping的时间
+    // /// </summary>
+    // private static float _lastPingTime = 0;
+    //
+    // /// <summary>
+    // /// 上一次收到Point的时间
+    // /// </summary>
+    // private static float _lastPongTime = 0;
+    //
+    // /// <summary>
+    // /// 心跳机制的时间间隔
+    // /// </summary>
+    // private static float _pingInterval = 2;
     
     /// <summary>
     /// 初始化
@@ -275,6 +275,7 @@ public static partial class NetManager
 
         if (count == 1)
         {
+            Debug.Log($"发送消息：{msg.ToString()} {serverType}");
             _socket.BeginSend(sendBytes, 0, sendBytes.Length, SocketFlags.None, SendCallback, _socket);
         }
     }
