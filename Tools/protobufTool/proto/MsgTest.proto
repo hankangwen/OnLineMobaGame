@@ -1,0 +1,5 @@
+syntax = "proto2";
+message MsgTest
+{
+	optional string protoName=1[default="MsgTest"];
+}

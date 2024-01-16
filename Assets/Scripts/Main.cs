@@ -1,3 +1,5 @@
+using PBMessage;
+using ProtoBuf;
 using UnityEngine;
 
 public class Main : MonoBehaviour
@@ -8,7 +10,21 @@ public class Main : MonoBehaviour
         NetManager.AddEventListener(NetManager.NetEvent.ConnectFail, OnEventFail);
         NetManager.AddEventListener(NetManager.NetEvent.Close, OnEventClose);
         
+        NetManager.AddMsgListener("MsgTest", OnMsgTest);
         NetManager.Connect("127.0.0.1", 8888);
+        
+        Invoke("Test", 2);
+    }
+
+    private void Test()
+    {
+        MsgTest msgTest = new MsgTest();
+        NetManager.Send(msgTest, NetManager.ServerType.Fighter);
+    }
+
+    private void OnMsgTest(IExtensible msgBase)
+    {
+        Debug.Log($"收到消息:{msgBase.ToString()}");
     }
 
     private void Update()
