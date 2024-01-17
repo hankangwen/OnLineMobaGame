@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
 using ProtoBuf;
@@ -69,6 +70,11 @@ public static partial class NetManager
     // /// 心跳机制的时间间隔
     // /// </summary>
     // private static float _pingInterval = 2;
+
+    /// <summary>
+    /// udp对象
+    /// </summary>
+    private static UdpClient _udpClient;
     
     /// <summary>
     /// 初始化
@@ -124,6 +130,10 @@ public static partial class NetManager
             Socket socket = (Socket)ar.AsyncState;
             socket.EndConnect(ar);
             Debug.Log("Connect Success!");
+
+            _udpClient = new UdpClient((IPEndPoint)socket.LocalEndPoint);
+            _udpClient.Connect((IPEndPoint)socket.RemoteEndPoint);
+            _udpClient.BeginReceive(ReceiveUdpCallback, null);
             
             DispatchEvent(NetEvent.ConnectSuccess, "");
 
@@ -387,4 +397,44 @@ public static partial class NetManager
     // {
     //     _lastPongTime = Time.time;
     // }
+
+    #region udp
+
+    private static void ReceiveUdpCallback(IAsyncResult ar)
+    {
+        IPEndPoint ipEndPoint = new IPEndPoint(IPAddress.Any, 0);
+        byte[] bytes = _udpClient.EndReceive(ar, ref ipEndPoint);
+
+        int nameCount = 0;
+        string protoName = ProtobufTool.DecodeName(bytes, 0, out nameCount);
+        if (protoName == "")
+        {
+            Debug.LogError("解析失败");
+            return;
+        }
+
+        int bodyCount = bytes.Length - nameCount;
+        var msgBase = ProtobufTool.Decode(protoName, bytes, nameCount, bodyCount);
+        lock (_msgList)
+        {
+            _msgList.Add(msgBase);
+        }
+
+        _udpClient.BeginReceive(ReceiveUdpCallback, null);
+    }
+
+    public static void SendTo(IExtensible msgBase, ServerType serverType)
+    {
+        byte[] nameBytes = ProtobufTool.EncodeName(msgBase);
+        byte[] bodyBytes = ProtobufTool.Encode(msgBase);
+        int len = nameBytes.Length + bodyBytes.Length + 1;
+        byte[] sendBytes = new byte[len];
+        sendBytes[0] = (byte)serverType;
+        Array.Copy(nameBytes, 0, sendBytes, 1, nameBytes.Length);
+        Array.Copy(bodyBytes, 0, sendBytes, 1+nameBytes.Length, bodyBytes.Length);
+
+        _udpClient.Send(sendBytes, sendBytes.Length);
+    }
+    
+    #endregion
 }
