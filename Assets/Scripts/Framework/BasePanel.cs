@@ -18,6 +18,28 @@ public class BasePanel : MonoBehaviour
     /// 面板层级
     /// </summary>
     public PanelManager.Layer layer = PanelManager.Layer.Panel;
-    
-    
+
+    public void Init()
+    {
+        skin = Instantiate(Resources.Load<GameObject>(skinPath));
+    }
+
+    /// <summary>
+    /// 面板初始化时执行
+    /// </summary>
+    public virtual void OnInit()
+    {
+        
+    }
+
+    public virtual void OnShow(params object[] args)
+    {
+        
+    }
+
+    public virtual void OnClose()
+    {
+        string name = GetType().Name;
+        PanelManager.Instance.Close(name);
+    }
 }
