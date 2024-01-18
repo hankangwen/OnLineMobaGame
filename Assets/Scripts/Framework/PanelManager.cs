@@ -1,0 +1,65 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class PanelManager : Singleton<PanelManager>
+{
+    public enum Layer
+    {
+        Panel,
+        Tip,
+    }
+
+    /// <summary>
+    /// 层级列表
+    /// </summary>
+    private Dictionary<Layer, Transform> _layers = new Dictionary<Layer, Transform>();
+
+    /// <summary>
+    /// 面板列表
+    /// </summary>
+    private Dictionary<string, BasePanel> _panels = new Dictionary<string, BasePanel>();
+    
+    /// <summary>
+    /// 面板根级元素
+    /// </summary>
+    private Transform _root;
+
+    /// <summary>
+    /// 画布
+    /// </summary>
+    private Transform _canvas;
+
+    private void Start()
+    {
+        Init();
+    }
+
+    private void Init()
+    {
+        _root = GameObject.Find("Root").transform;
+        _canvas = _root.Find("Canvas");
+        _layers.Add(Layer.Panel, _canvas.Find("Panel"));
+        _layers.Add(Layer.Tip, _canvas.Find("Tip"));
+    }
+
+    /// <summary>
+    /// 打开面板
+    /// </summary>
+    /// <param name="args"></param>
+    /// <typeparam name="T"></typeparam>
+    public void Open<T>(params object[] args) where T : BasePanel
+    {
+        
+    }
+
+    /// <summary>
+    /// 关闭面板
+    /// </summary>
+    /// <param name="name">面板名字</param>
+    public void Close(string name)
+    {
+        
+    }
+}
