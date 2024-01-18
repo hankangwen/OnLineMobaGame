@@ -27,7 +27,7 @@ public class BasePanel : MonoBehaviour
     /// <summary>
     /// 面板初始化时执行
     /// </summary>
-    public virtual void OnInit()
+    public virtual void OnPrepareInit()
     {
         
     }
