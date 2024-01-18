@@ -31,11 +31,15 @@ public class PanelManager : Singleton<PanelManager>
     /// </summary>
     private Transform _canvas;
 
-    private void Start()
+    protected override void Awake()
     {
+        base.Awake();
         Init();
     }
 
+    /// <summary>
+    /// 初始化
+    /// </summary>
     private void Init()
     {
         _root = GameObject.Find("Root").transform;

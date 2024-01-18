@@ -39,7 +39,6 @@ public class BasePanel : MonoBehaviour
 
     public virtual void OnClose()
     {
-        string name = GetType().Name;
-        PanelManager.Instance.Close(name);
+        
     }
 }

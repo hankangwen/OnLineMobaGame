@@ -285,7 +285,7 @@ public static partial class NetManager
 
         if (count == 1)
         {
-            Debug.Log($"发送消息：{msg.ToString()} {serverType}");
+            Debug.Log($"tcp发送消息：{msg.ToString()} {serverType}");
             _socket.BeginSend(sendBytes, 0, sendBytes.Length, SocketFlags.None, SendCallback, _socket);
         }
     }
@@ -423,16 +423,22 @@ public static partial class NetManager
         _udpClient.BeginReceive(ReceiveUdpCallback, null);
     }
 
-    public static void SendTo(IExtensible msgBase, ServerType serverType)
+    /// <summary>
+    /// udp发送
+    /// </summary>
+    /// <param name="msg"></param>
+    /// <param name="serverType"></param>
+    public static void SendTo(IExtensible msg, ServerType serverType)
     {
-        byte[] nameBytes = ProtobufTool.EncodeName(msgBase);
-        byte[] bodyBytes = ProtobufTool.Encode(msgBase);
+        byte[] nameBytes = ProtobufTool.EncodeName(msg);
+        byte[] bodyBytes = ProtobufTool.Encode(msg);
         int len = nameBytes.Length + bodyBytes.Length + 1;
         byte[] sendBytes = new byte[len];
         sendBytes[0] = (byte)serverType;
         Array.Copy(nameBytes, 0, sendBytes, 1, nameBytes.Length);
         Array.Copy(bodyBytes, 0, sendBytes, 1+nameBytes.Length, bodyBytes.Length);
-
+        
+        Debug.Log($"udp发送消息：{msg.ToString()} {serverType}");
         _udpClient.Send(sendBytes, sendBytes.Length);
     }
     
