@@ -43,7 +43,7 @@
 
 大小端问题
 
-![image-20240118230537430](C:\Users\Kerven\AppData\Roaming\Typora\typora-user-images\image-20240118230537430.png)
+![image-20240119103835785](https://gitcode.net/hankangwen/blog-image/raw/master/pictures/2024/01/19_10_38_42_image-20240119103835785.png)
 
 ![image-20240118230609545](https://gitcode.net/hankangwen/blog-image/-/raw/master/pictures/2024/01/18_23_6_9_image-20240118230609545.png)
 
