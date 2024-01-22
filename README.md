@@ -51,10 +51,20 @@
 
 ![image-20240118230644124](https://gitcode.net/hankangwen/blog-image/-/raw/master/pictures/2024/01/18_23_6_44_image-20240118230644124.png)
 
-![image-20240118230704543](https://gitcode.net/hankangwen/blog-image/-/raw/master/pictures/2024/01/18_23_7_7_18_23_7_4_image-20240118230704543.png)
 
-![image-20240118230716087](https://gitcode.net/hankangwen/blog-image/-/raw/master/pictures/2024/01/18_23_7_16_image-20240118230716087.png)
+
+
+
+
+
+
+
+
+
+
 
 #### 附录：
 
 [Unity 网络通讯入门教程——理论篇（Unity2021）这个课程讲得比较广](https://www.sikiedu.com/course/1641)
+
+[使用IEEE754标准转换过程-CSDN博客](https://blog.csdn.net/qq_34035956/article/details/135703991?spm=1001.2014.3001.5501)
