@@ -1,9 +1,9 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Globalization;
-using UnityEngine;
 
+/// <summary>
+/// [帧同步]自定义定点数
+/// </summary>
 [Serializable]
 public struct Fixed64 : IEquatable<Fixed64>, IComparable, IComparable<Fixed64>
 {
@@ -13,7 +13,7 @@ public struct Fixed64 : IEquatable<Fixed64>, IComparable, IComparable<Fixed64>
     /// </summary>
     private const int FRACTIONALBITS = 12;
     private const long ONE = 1L << FRACTIONALBITS;
-    private static Fixed64 Zero = new Fixed64(0);
+    public static Fixed64 Zero = new Fixed64(0);
 
     /// <summary>
     /// 私有构造函数，直接对value进行赋值
