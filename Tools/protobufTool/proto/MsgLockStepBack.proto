@@ -1,0 +1,24 @@
+syntax = "proto2";
+
+//import "google/protobuf/timestamp.proto";
+import "proto/MsgLockStep.proto";
+
+// //一帧的操作 todo hankangwen:此处可以用import来解决重复声明Opts
+// message Opts
+// {
+// 	required uint32 guid = 1;			//发出操作的玩家
+// 	required Operation operation = 2;	//操作类型
+// 	repeated uint64 param = 3;			//参数，repeated uint64对应Fixed64[]
+// }
+
+message UnsyncOpts
+{
+	optional int32 turn = 1;	//帧数
+	repeated Opts opts = 2;		//操作
+}
+
+message MsgLockStepBack
+{
+	optional int32 turn = 1;				//当前服务端的帧数
+	repeated UnsyncOpts unsyncOpts = 2;		//未同步的所有操作
+}

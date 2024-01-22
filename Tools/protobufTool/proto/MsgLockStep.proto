@@ -1,0 +1,24 @@
+syntax = "proto2";
+
+//import "google/protobuf/timestamp.proto";
+
+//操作类型
+enum Operation
+{
+	Joystick = 0;	//摇杆
+}
+
+//一帧的操作
+message Opts
+{
+	required uint32 guid = 1;			//发出操作的玩家
+	required Operation operation = 2;	//操作类型
+	repeated uint64 param = 3;			//参数，repeated uint64对应Fixed64[]
+}
+
+message MsgLockStep
+{
+	optional string protoName=1[default="MsgLockStep"];
+	optional int32 turn = 2;		//当前客户端的帧数
+	repeated Opts opts = 3;			//一帧的所有操作
+}
