@@ -1,0 +1,6 @@
+syntax = "proto3";
+
+message MsgPing
+{
+	string protoName = 1 [default = "MsgPing"];
+}

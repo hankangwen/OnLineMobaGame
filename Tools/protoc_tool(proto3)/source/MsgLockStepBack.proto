@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+import "proto/MsgLockStep.proto";
+
+message UnsyncOpts
+{
+	int32 turn = 1;	//帧数
+	repeated Opts opts = 2;		//操作
+}
+
+message MsgLockStepBack
+{
+	int32 turn = 1;				//当前服务端的帧数
+	repeated UnsyncOpts unsyncOpts = 2;		//未同步的所有操作
+}

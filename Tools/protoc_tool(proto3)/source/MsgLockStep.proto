@@ -1,0 +1,25 @@
+syntax = "proto3";
+package PBMessage;
+
+//import "google/protobuf/timestamp.proto";
+
+//操作类型
+enum Operation
+{
+	Joystick = 0;	//摇杆
+}
+
+//一帧的操作
+message Opts
+{
+	uint32 guid = 1;			//发出操作的玩家
+	Operation operation = 2;	//操作类型
+	repeated uint64 param = 3;			//参数，repeated uint64对应Fixed64[]
+}
+
+message MsgLockStep
+{
+	string protoName = 1;
+	int32 turn = 2;		//当前客户端的帧数
+	repeated Opts opts = 3;			//一帧的所有操作
+}
