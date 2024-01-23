@@ -9,7 +9,7 @@ public struct Fixed64 : IEquatable<Fixed64>, IComparable, IComparable<Fixed64>
 {
     public long value;
     /// <summary>
-    /// 小数部分的位数
+    /// 小数部分的位数 
     /// </summary>
     private const int FRACTIONALBITS = 12;
     private const long ONE = 1L << FRACTIONALBITS;
@@ -84,7 +84,7 @@ public struct Fixed64 : IEquatable<Fixed64>, IComparable, IComparable<Fixed64>
     
     #endregion
 
-    #region 重载类型转换
+    #region 重载类型转换 explicit：显式转换
     
     public static explicit operator long(Fixed64 value)
     {
